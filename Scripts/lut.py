@@ -19,6 +19,10 @@ while auction_page_href:
 
 for lot_link in lot_list_links:
     lut_page = LutLotPage.LotPage(base_url+lot_link)
-    info = lut_page.get_lot_info()
-    # print(json.dumps(info, indent=4))
+    lot_info = lut_page.get_lot_info()
+    car_info = lut_page.get_car_info()
+
+    lot_info.update(car_info)
+    print(json.dumps(lot_info, indent=4))
+
     pass

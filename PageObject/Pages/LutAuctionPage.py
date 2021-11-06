@@ -31,9 +31,9 @@ class AuctionPage:
         return auction_href_list
 
     def get_next_page_href(self):
-        BTN_NEXT_PAGE_XPATH = "//a[@rel='next']"
 
-        btn_next = self.tree.xpath(BTN_NEXT_PAGE_XPATH)
+
+        btn_next = self.tree.xpath(Locator.BTN_NEXT_PAGE_XPATH)
         if not btn_next:
             return False
 
