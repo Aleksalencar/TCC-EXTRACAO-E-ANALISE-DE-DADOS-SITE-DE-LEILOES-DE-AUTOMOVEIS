@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime, date
 
 import requests
@@ -19,11 +20,7 @@ class LotPage:
         self.url = url
         logging.info(self.url)
 
-        # Parse main LotPage
-        # page = requests.get(self.url, )
-        # self.tree = html.fromstring(page.content)
-
-        # Parse main page
+        # Parse lot page
         page = requests.get(self.url)
         self.tree = html.fromstring(page.content)
 
@@ -79,7 +76,7 @@ class LotPage:
         car_title = car_title.replace("Veículo ", "")
         car_title = car_title.upper()
 
-        brand = self.__compare_car_brand(car_title)
+        brand = self.compare_car_brand(car_title)
 
         # from index 1 until the end
         car_title.split(' ', 1)
@@ -88,9 +85,7 @@ class LotPage:
 
         appraisal_value = self.get_appraisal_value()
 
-
-        year = self.__get_year()
-        year = self.__remove_escapes(year)
+        year = self.get_year()
 
         car_info = {
             'brand': brand,
@@ -145,21 +140,20 @@ class LotPage:
                 return appraisal_value
 
     def get_year(self):
-        description = ""
-
-        elements = self.tree.xpath('//*[@class="info-content"]//p')
-        for element in elements:
-            text = element.text
-            if "Ano de fabricação" in text:
-                description = text
-
-        if not description:
+        page_text = ''.join(self.tree.itertext())
+        page_text = page_text.lower()
+        m = re.search(r'ano.+?([0-9]\/|[0-9]+)', page_text)
+        try:
+            year = m.group(0)
+        except AttributeError:
+            logging.critical("Regex not found")
+            # exit()
             return "Not found"
 
-        description = description.split(",")
-        logging.info("description = " + str(description))
-        for word in description:
-            if "Ano de fabricação" in word:
-                year = word.split("fabricação ")[1]
-                logging.info("year = " + year)
-                return year
+        year = year.replace("ano", "")
+        year = year.replace("modelo", "")
+        year = year.replace("/", "")
+        year = year.replace(":", "")
+        year = year.replace(" ", "")
+
+        return year

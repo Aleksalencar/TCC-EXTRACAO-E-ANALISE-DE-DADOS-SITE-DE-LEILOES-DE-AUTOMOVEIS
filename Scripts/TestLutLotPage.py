@@ -58,10 +58,37 @@ class TestLutLotPage(unittest.TestCase):
 
         self.assertEqual(result, expected_result)
 
-    def test_get_appraisal_value(self):
+    def test_get_year(self):
+        test_cases = [
+            {
+                'url': "https://www.lut.com.br/lote/motocicleta-honda-biz/88273",
+                'year': "2009"
+            },
+            {
+                'url': "https://www.lut.com.br/lote/veiculo-ford-fiesta/88571",
+                'year': "2003"
+            },
+            {
+                'url': "https://www.lut.com.br/lote/veiculo-peugeot-sw/88573",
+                'year': "2007"
+            },
+            {
+                'url': "https://www.lut.com.br/lote/veiculo-fiat-idea-elx/88697",
+                'year': "Not found"
+            },
+
+        ]
+        for case in test_cases:
+            self.lut_page = LutLotPage.LotPage(case['url'])
+            result = self.lut_page.get_year()
+            self.assertEqual(result, case['year'])
+
+
+
+    def test_get_location(self):
         logging.info("running test_get_appraisal_value")
-        result = self.lut_page.get_appraisal_value()
-        expected_result = "R$ 10.000,00"
+        result = self.lut_page.get_location()
+        expected_result = "SERTÃOZINHO/SP"
 
         self.assertEqual(result, expected_result)
 

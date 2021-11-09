@@ -17,12 +17,14 @@ while auction_page_href:
     lot_list_links = lot_list_links + auction_page.get_lot_href_list()  # Merge lists
     auction_page_href = auction_page.get_next_page_href()
 
+not_year = []
 for lot_link in lot_list_links:
     lut_page = LutLotPage.LotPage(base_url+lot_link)
     lot_info = lut_page.get_lot_info()
     car_info = lut_page.get_car_info()
+    if car_info['year'] == "Not found":
+        not_year.append(lot_info['url'])
 
     lot_info.update(car_info)
     print(json.dumps(lot_info, indent=4))
-
-    pass
+print(not_year)
