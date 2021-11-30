@@ -86,7 +86,7 @@ class TestLutLotPage(unittest.TestCase):
 
 
     def test_get_location(self):
-        logging.info("running test_get_appraisal_value")
+        logging.info("running test_get_location")
         result = self.lut_page.get_location()
         expected_result = "SERTÃOZINHO/SP"
 

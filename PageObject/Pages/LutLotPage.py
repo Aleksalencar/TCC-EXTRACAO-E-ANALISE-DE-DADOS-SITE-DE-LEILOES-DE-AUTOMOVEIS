@@ -83,16 +83,12 @@ class LotPage:
         model = car_title.split(' ', 1)[1]
         logging.info("model = " + model)
 
-        appraisal_value = self.get_appraisal_value()
-
-        year = self.get_year()
-
         car_info = {
             'brand': brand,
             'model': model,
-            'year': year,
-            'appraisal_value': appraisal_value,
-            'location': "",
+            'year': self.get_year(),
+            'appraisal_value': self.get_appraisal_value(),
+            'location': self.get_location(),
         }
         return car_info
 
@@ -157,3 +153,13 @@ class LotPage:
         year = year.replace(" ", "")
 
         return year
+
+    def get_location(self):
+        elements = self.tree.xpath('//*[@class="info-content"]//p/img')
+        for element in elements:
+            text = element.tail
+            if "Local do bem:" in text:
+                location = text.split(": ")[1]
+                location = self.__remove_escapes(location)
+                logging.info("location = " + location)
+                return location
