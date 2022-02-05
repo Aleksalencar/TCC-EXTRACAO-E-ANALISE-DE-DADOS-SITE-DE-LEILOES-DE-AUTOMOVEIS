@@ -29,3 +29,4 @@ class MainPage:
         btn_href = btn['data-href']
 
         return btn_href
+

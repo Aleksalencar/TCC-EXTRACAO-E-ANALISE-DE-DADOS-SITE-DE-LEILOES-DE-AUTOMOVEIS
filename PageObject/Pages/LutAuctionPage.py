@@ -25,8 +25,16 @@ class AuctionPage:
 
         for btn_detail in btn_details_list:
             btn_detail = btn_detail.attrib
-            logging.info(btn_detail['href'])
-            auction_href_list.append(btn_detail['href'])
+            href = btn_detail['href']
+
+            if 'leilao' in href:
+                try:
+                    href = self.get_lot_href(href)
+                except:
+                    pass
+
+            logging.info(href)
+            auction_href_list.append(href)
 
         return auction_href_list
 
@@ -38,3 +46,10 @@ class AuctionPage:
         btn_next = btn_next[0].attrib
         logging.info(btn_next['href'])
         return btn_next['href']
+
+    def get_lot_href(self, href):
+        page = requests.get('https://www.lut.com.br' + href)
+        tree = html.fromstring(page.content)
+        btn_lot = tree.xpath('//*[@id="details0"]/a')[0]
+        href = btn_lot.attrib['href']
+        return href

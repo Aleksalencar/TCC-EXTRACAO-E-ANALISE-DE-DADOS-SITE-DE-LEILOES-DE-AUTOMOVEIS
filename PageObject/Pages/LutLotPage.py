@@ -42,18 +42,27 @@ class LotPage:
 
         today = date.today()
         today = datetime(today.year, today.month, today.day)
+        try:
+            ending_datetime = datetime.strptime(ending_date, '%d/%m/%Y %H:%M:%S')
+        except:
+            ending_datetime = None
 
-        ending_datetime = datetime.strptime(ending_date, '%d/%m/%Y %H:%M:%S')
-        opening_datetime = datetime.strptime(opening_date, '%d/%m/%Y')
+        try:
+            opening_datetime = datetime.strptime(opening_date, '%d/%m/%Y')
+        except:
+            ending_datetime = None
 
-        lot_stats = "Not OK"
-
-        if today < opening_datetime:
-            lot_stats = "Aguardando"
-        if opening_datetime <= today <= ending_datetime:
-            lot_stats = "Aberto"
-        if today > ending_datetime:
-            lot_stats = "Fechado"
+        try:
+            lot_stats = "Not OK"
+            if lot_stats:
+                if today < opening_datetime:
+                    lot_stats = "Aguardando"
+                if opening_datetime <= today <= ending_datetime:
+                    lot_stats = "Aberto"
+                if today > ending_datetime:
+                    lot_stats = "Fechado"
+        except TypeError:
+            lot_stats = None
 
         info = {
             'url': self.url,
@@ -143,7 +152,6 @@ class LotPage:
             year = m.group(0)
         except AttributeError:
             logging.critical("Regex not found")
-            # exit()
             return "Not found"
 
         year = year.replace("ano", "")

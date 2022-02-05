@@ -15,7 +15,9 @@ class TestLutLotPage(unittest.TestCase):
         self.lut_page = LutLotPage.LotPage(url)
 
     def test_get_lot_info_(self):
-        test_case = {
+        url = "https://www.lut.com.br/lote/veiculo-peugeot-hb/87589"
+        self.lut_page = LutLotPage.LotPage(url)
+        expected_result = {
             'url': "https://www.lut.com.br/lote/veiculo-peugeot-hb/87589",
             'site_lot_id': 87589,
             'actual_bid': "R$ 10.000,00",
@@ -29,7 +31,7 @@ class TestLutLotPage(unittest.TestCase):
         logging.info("running test_get_lot_info_")
 
         result = self.lut_page.get_lot_info()
-        self.assertEqual(result, test_case)
+        self.assertEqual(result, expected_result)
 
     def test_get_car_info_(self):
         test_case = {
