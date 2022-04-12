@@ -1,9 +1,12 @@
+from datetime import datetime
 import json
 from math import ceil
+import os
 from pprint import pprint
 import re
 from tkinter import N
 from tkinter.messagebox import NO
+from opensearch_dsl import A
 from requests_html import HTMLSession
 
 import requests
@@ -36,6 +39,7 @@ class Sandre():
                     'ano': self.get_year(name),
                     'actual_bid': self.get_actual_bid(auction_page),
                     'local': self.get_local(auction_page),
+                    'date': self.get_date(auction_page)
                 }
                 
                 details = self.get_datails(auction_page)
@@ -43,7 +47,14 @@ class Sandre():
                 data.update(details)
                 pprint(data)
                 
-                file_name = fr'C:\Users\Aleksander\Documents\GitHub\AuctionMinerBot\jsons\{name}.json'
+                folder = fr'C:\Users\Aleksander\Documents\GitHub\AuctionMinerBot\jsons'
+                if not os.path.exists(folder):
+                    os.mkdir(folder)
+                elif not os.path.isdir(folder):
+                    return #you may want to throw some error or so.
+                
+                name = name.replace("/", ", ")
+                file_name = os.path.join(folder, f'{name}.json')
                 with open(file_name, 'w', encoding='utf-8') as f:
                     json.dump(data, f, ensure_ascii=False, indent=4)
                 
@@ -97,7 +108,12 @@ class Sandre():
         years = year.split("/")
         years_list = []
         for year in years:
-            year = int(year)
+            try:
+                year = datetime.strptime(year, "%Y")
+            except ValueError:
+                year = datetime.strptime(year, "%y")
+            
+            year = year.year
             years_list.append(year)
         return years_list
 
@@ -123,6 +139,17 @@ class Sandre():
     def get_local(self, auction_page):
         local = auction_page.xpath('//p[contains(text(),"Local do lote")]')[0].text
         return local
+    
+    def get_date(self, auction_page):
+        date_text = auction_page.xpath('//*[@id="statusLote_id"]/span/span')[0].text
+        try:
+            date = datetime.strptime(date_text, "%d/%m - %H:%M")
+        except ValueError:
+            return None
+            
+        date = date.replace(year=date.today().year)
+        date = date.strftime("%m/%d/%Y, %H:%M:%S")
+        return date
     
 
 if __name__ == '__main__':
