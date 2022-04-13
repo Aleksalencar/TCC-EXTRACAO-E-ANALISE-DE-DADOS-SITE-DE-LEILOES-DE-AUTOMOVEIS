@@ -12,19 +12,29 @@ from requests_html import HTMLSession
 import requests
 from lxml import html
 
+import csv
+
 
 class Sandre():
     def __init__(self) -> None:
         pass
 
     def get_data(self):
+        csv_file = "sandre.csv"
+        csv_columns = ['url', 'name', 'year', 'actual_bid', 'local', 'date', 'Placa',
+                       'Cor', 'KM', 'Combustível', 'Direção Hidráulica/Elétrica', 'Ar Condicionado', 'Câmbio (Moto)']
+
+        with open(csv_file, 'a', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+            writer.writeheader()
+
         url = "https://www.sodresantoro.com.br/veiculos/ordenacao/data_leilao/tipo-ordenacao/crescente/qtde-itens/30/visualizacao/visual_imagemlista/item-atual/1/pagina/1"
         page = self.search(url)
         total_items = self.get_total_items(page)
         total_items = int(total_items)
         total_pages = ceil(total_items / 30)
         for page_number in range(2, total_pages + 2):
-            
+
             auctions_links = self.get_auctions(page)
             for link in auctions_links:
                 auction_page = self.parse_auction(link)
@@ -35,29 +45,21 @@ class Sandre():
 
                 data = {
                     'url': link,
-                    'nome': name,
-                    'ano': self.get_year(name),
+                    'name': name,
+                    'year': self.get_year(name),
                     'actual_bid': self.get_actual_bid(auction_page),
                     'local': self.get_local(auction_page),
                     'date': self.get_date(auction_page)
                 }
-                
+
                 details = self.get_datails(auction_page)
-                
+
                 data.update(details)
                 pprint(data)
                 
-                folder = fr'C:\Users\Aleksander\Documents\GitHub\AuctionMinerBot\jsons'
-                if not os.path.exists(folder):
-                    os.mkdir(folder)
-                elif not os.path.isdir(folder):
-                    return #you may want to throw some error or so.
-                
-                name = name.replace("/", ", ")
-                file_name = os.path.join(folder, f'{name}.json')
-                with open(file_name, 'w', encoding='utf-8') as f:
-                    json.dump(data, f, ensure_ascii=False, indent=4)
-                
+                with open(csv_file, 'a', encoding='utf-8') as csvfile:
+                    writer = csv.DictWriter(csvfile, fieldnames=csv_columns, extrasaction='ignore')
+                    writer.writerow(data)
 
             # Getting next page
             url = url.split("/")
@@ -72,7 +74,8 @@ class Sandre():
 
     def get_total_items(self, initial_page):
 
-        total_items = re.search("[0-9]+(?=</b> lotes)", initial_page.text).group()
+        total_items = re.search(
+            "[0-9]+(?=</b> lotes)", initial_page.text).group()
         total_items = int(total_items)
         return total_items
 
@@ -112,20 +115,23 @@ class Sandre():
                 year = datetime.strptime(year, "%Y")
             except ValueError:
                 year = datetime.strptime(year, "%y")
-            
+
             year = year.year
             years_list.append(year)
         return years_list
 
     def get_datails(self, auction_page):
-        lis = auction_page.xpath('//*[@id="coluna4"]/div[3]/div[1]/div[8]/div/div[1]/ul/li')
+        lis = auction_page.xpath(
+            '//*[@id="coluna4"]/div[3]/div[1]/div[8]/div/div[1]/ul/li')
         details = {}
         for li_i in range(1, len(lis) + 1):
-            key = auction_page.xpath(f'//*[@id="coluna4"]/div[3]/div[1]/div[8]/div/div[1]/ul/li[{li_i}]/p/text()')[0]
+            key = auction_page.xpath(
+                f'//*[@id="coluna4"]/div[3]/div[1]/div[8]/div/div[1]/ul/li[{li_i}]/p/text()')[0]
             key = key.strip()
             key = key.replace(":", "")
 
-            value = auction_page.xpath(f'//*[@id="coluna4"]/div[3]/div[1]/div[8]/div/div[1]/ul/li[{li_i}]/p/b')[0].text
+            value = auction_page.xpath(
+                f'//*[@id="coluna4"]/div[3]/div[1]/div[8]/div/div[1]/ul/li[{li_i}]/p/b')[0].text
             if value:
                 value = value.strip()
             details[key] = value
@@ -135,22 +141,24 @@ class Sandre():
     def get_actual_bid(self, auction_page):
         bid = auction_page.xpath('//*[@class="valor"]')[0].text
         return bid
-    
+
     def get_local(self, auction_page):
-        local = auction_page.xpath('//p[contains(text(),"Local do lote")]')[0].text
+        local = auction_page.xpath(
+            '//p[contains(text(),"Local do lote")]')[0].text
         return local
-    
+
     def get_date(self, auction_page):
-        date_text = auction_page.xpath('//*[@id="statusLote_id"]/span/span')[0].text
+        date_text = auction_page.xpath(
+            '//*[@id="statusLote_id"]/span/span')[0].text
         try:
             date = datetime.strptime(date_text, "%d/%m - %H:%M")
         except ValueError:
             return None
-            
+
         date = date.replace(year=date.today().year)
         date = date.strftime("%m/%d/%Y, %H:%M:%S")
         return date
-    
+
 
 if __name__ == '__main__':
     s = Sandre()
