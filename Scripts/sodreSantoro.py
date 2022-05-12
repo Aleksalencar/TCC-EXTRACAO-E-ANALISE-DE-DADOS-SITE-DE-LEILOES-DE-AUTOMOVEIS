@@ -1,3 +1,4 @@
+from datetime import date
 from datetime import datetime
 import json
 from math import ceil
@@ -20,15 +21,16 @@ class Sandre():
         pass
 
     def get_data(self):
-        csv_file = "sandre.csv"
-        csv_columns = ['url', 'name', 'year', 'actual_bid', 'local', 'date', 'Placa',
-                       'Cor', 'KM', 'Combustível', 'Direção Hidráulica/Elétrica', 'Ar Condicionado', 'Câmbio (Moto)']
+        today = date.today()
+        csv_file = f"sandre_{today}.csv"
+        csv_columns = ['url', 'brand', 'name', 'year', 'actual_bid', 'local', 'date', 'Placa',
+                       'Cor', 'KM', 'Combustível', 'Direção Hidráulica/Elétrica', 'Ar Condicionado', 'Câmbio (Moto)',  'Câmbio', 'Origem', 'Kit Gás', 'Blindagem', 'Estado do Chassi']
 
         with open(csv_file, 'a', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
             writer.writeheader()
 
-        url = "https://www.sodresantoro.com.br/veiculos/ordenacao/data_leilao/tipo-ordenacao/crescente/qtde-itens/30/visualizacao/visual_imagemlista/item-atual/1/pagina/1"
+        url = "https://www.sodresantoro.com.br/veiculos/ordenacao/data_leilao/tipo-ordenacao/crescente/qtde-itens/30/visualizacao/visual_imagemlista/item-atual/1/pagina/1/v_categoria/carros;utilitarios-leves/v_sinistro/sem-sinistro/v_km/1%7C19999;40000%7C59999;60000%7C79999;80000%7C99999;100000%7C119999;120000%7C139999;140000%7C/v_combustivel/diesel;flex;gasolina/"
         page = self.search(url)
         total_items = self.get_total_items(page)
         total_items = int(total_items)
@@ -49,22 +51,20 @@ class Sandre():
                     'year': self.get_year(name),
                     'actual_bid': self.get_actual_bid(auction_page),
                     'local': self.get_local(auction_page),
-                    'date': self.get_date(auction_page)
+                    'date': self.get_date(auction_page),
+                    'brand': name.split(" ")[5]
                 }
 
                 details = self.get_datails(auction_page)
-
                 data.update(details)
-                pprint(data)
                 
+                pprint(data)
                 with open(csv_file, 'a', encoding='utf-8') as csvfile:
-                    writer = csv.DictWriter(csvfile, fieldnames=csv_columns, extrasaction='ignore')
+                    writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
                     writer.writerow(data)
 
             # Getting next page
-            url = url.split("/")
-            url[-1] = str(page_number)
-            url = "/".join(url)
+            url = f"https://www.sodresantoro.com.br/veiculos/ordenacao/data_leilao/tipo-ordenacao/crescente/qtde-itens/30/visualizacao/visual_imagemlista/item-atual/1/pagina/{page_number}/v_categoria/carros;utilitarios-leves/v_sinistro/sem-sinistro/v_km/1%7C19999;40000%7C59999;60000%7C79999;80000%7C99999;100000%7C119999;120000%7C139999;140000%7C/v_combustivel/diesel;flex;gasolina/"
             page = self.search(url)
 
     def search(self, url):
@@ -112,9 +112,12 @@ class Sandre():
         years_list = []
         for year in years:
             try:
-                year = datetime.strptime(year, "%Y")
-            except ValueError:
-                year = datetime.strptime(year, "%y")
+                try:
+                    year = datetime.strptime(year, "%Y")
+                except ValueError:
+                    year = datetime.strptime(year, "%y")
+            except:
+                continue
 
             year = year.year
             years_list.append(year)
@@ -156,7 +159,7 @@ class Sandre():
             return None
 
         date = date.replace(year=date.today().year)
-        date = date.strftime("%m/%d/%Y, %H:%M:%S")
+        date = date.strftime("%d/%m/%Y, %H:%M:%S")
         return date
 
 
