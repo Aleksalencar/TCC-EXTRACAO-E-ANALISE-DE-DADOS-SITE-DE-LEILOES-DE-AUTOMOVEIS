@@ -5,13 +5,11 @@ from math import ceil
 import os
 from pprint import pprint
 import re
-from tkinter import N
-from tkinter.messagebox import NO
-from opensearch_dsl import A
 from requests_html import HTMLSession
 
 import requests
 from lxml import html
+from os.path import exists
 
 import csv
 
@@ -22,9 +20,14 @@ class Sandre():
 
     def get_data(self):
         today = date.today()
-        csv_file = f"sandre_{today}.csv"
+        csv_file = fr"C:\Users\Aleksander\Documents\GitHub\AuctionMinerBot\sandre_{today}.csv"
         csv_columns = ['url', 'brand', 'name', 'year', 'actual_bid', 'local', 'date', 'Placa',
                        'Cor', 'KM', 'Combustível', 'Direção Hidráulica/Elétrica', 'Ar Condicionado', 'Câmbio (Moto)',  'Câmbio', 'Origem', 'Kit Gás', 'Blindagem', 'Estado do Chassi']
+        
+        if exists(csv_file):
+            print("File already colected")
+            exit()
+            
 
         with open(csv_file, 'a', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
